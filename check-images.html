@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Image Checker</title>
+  <style>
+    body {
+      background: #0D0F1A;
+      color: #F0F0FF;
+      font-family: sans-serif;
+      padding: 20px;
+      margin: 0;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 1.4rem;
+      margin-bottom: 6px;
+      color: #9D5CF5;
+    }
+
+    #summary {
+      text-align: center;
+      font-size: .9rem;
+      color: #8890BB;
+      margin-bottom: 24px;
+    }
+
+    #summary span.ok  { color: #2ECC71; font-weight: 700; }
+    #summary span.bad { color: #FF4757; font-weight: 700; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 12px;
+    }
+
+    .card {
+      background: #181B30;
+      border: 2px solid #2A2D48;
+      border-radius: 10px;
+      overflow: hidden;
+      text-align: center;
+    }
+
+    .card.ok  { border-color: #2ECC71; }
+    .card.bad { border-color: #FF4757; }
+
+    .card img {
+      width: 100%;
+      height: 110px;
+      object-fit: cover;
+      display: block;
+      background: #13162A;
+    }
+
+    .card .info {
+      padding: 8px 6px;
+    }
+
+    .card .word {
+      font-size: .82rem;
+      font-weight: 700;
+      margin-bottom: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .card .filename {
+      font-size: .68rem;
+      color: #8890BB;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .card .status {
+      font-size: .72rem;
+      font-weight: 700;
+      padding: 3px 0 6px;
+    }
+
+    .ok  .status { color: #2ECC71; }
+    .bad .status { color: #FF4757; }
+
+    #filter-bar {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      padding: 7px 16px;
+      border-radius: 20px;
+      border: 1.5px solid #2A2D48;
+      background: #181B30;
+      color: #8890BB;
+      font-size: .82rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .filter-btn.active {
+      background: #7C3AED;
+      border-color: #7C3AED;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🖼️ Image Checker</h1>
+  <div id="summary">Loading…</div>
+
+  <div id="filter-bar">
+    <button class="filter-btn active" onclick="setFilter('all', this)">All</button>
+    <button class="filter-btn" onclick="setFilter('ok', this)">✓ Working</button>
+    <button class="filter-btn" onclick="setFilter('bad', this)">✗ Broken</button>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <script src="words.js"></script>
+  <script>
+    let results = [];   // { word, filename, ok }
+    let loaded  = 0;
+    let currentFilter = 'all';
+
+    function setFilter(f, btn) {
+      currentFilter = f;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderGrid();
+    }
+
+    function renderGrid() {
+      const grid = document.getElementById('grid');
+      const show = currentFilter === 'all'
+        ? results
+        : results.filter(r => currentFilter === 'ok' ? r.ok : !r.ok);
+
+      grid.innerHTML = '';
+      show.forEach(r => {
+        const card = document.createElement('div');
+        card.className = 'card ' + (r.ok ? 'ok' : 'bad');
+
+        const img = document.createElement('img');
+        img.src = r.image;
+        img.alt = r.word;
+
+        const info = document.createElement('div');
+        info.className = 'info';
+        info.innerHTML = `
+          <div class="word">${r.word}</div>
+          <div class="filename">${r.filename}</div>
+          <div class="status">${r.ok ? '✓ OK' : '✗ Missing'}</div>
+        `;
+
+        card.appendChild(img);
+        card.appendChild(info);
+        grid.appendChild(card);
+      });
+    }
+
+    function updateSummary() {
+      const ok  = results.filter(r => r.ok).length;
+      const bad = results.filter(r => !r.ok).length;
+      document.getElementById('summary').innerHTML =
+        `${results.length} total &nbsp;|&nbsp; ` +
+        `<span class="ok">✓ ${ok} working</span> &nbsp;|&nbsp; ` +
+        `<span class="bad">✗ ${bad} missing</span>`;
+    }
+
+    // Build result list and test each image
+    WORDS.forEach(w => {
+      const filename = w.image.split('/').pop();
+      const entry = { word: w.word, image: w.image, filename, ok: false };
+      results.push(entry);
+
+      const img = new Image();
+      img.onload = () => {
+        entry.ok = true;
+        loaded++;
+        if (loaded === WORDS.length) { updateSummary(); renderGrid(); }
+        else updateSummary();
+      };
+      img.onerror = () => {
+        entry.ok = false;
+        loaded++;
+        if (loaded === WORDS.length) { updateSummary(); renderGrid(); }
+        else updateSummary();
+      };
+      img.src = w.image;
+    });
+  </script>
+
+</body>
+</html>
