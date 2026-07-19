@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>IMPOSTER — Pass the Phone</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ══════════════ SCREEN: HOME ══════════════ -->
+  <div id="screen-home" class="screen active">
+    <div class="bg-orbs">
+      <div class="orb orb1"></div>
+      <div class="orb orb2"></div>
+      <div class="orb orb3"></div>
+    </div>
+    <div class="home-wrap">
+      <div class="logo-block">
+        <div class="eye-anim">
+          <div class="eye-outer"><div class="eye-inner"><div class="eye-pupil"></div></div></div>
+        </div>
+        <h1 class="game-title">IMPOSTER</h1>
+        <p class="game-mode-tag">Pass the Phone</p>
+      </div>
+
+      <div class="setup-card card">
+        <p class="setup-intro">How many players?</p>
+
+        <div class="player-count-picker">
+          <button class="count-btn" id="btn-minus" onclick="adjustCount(-1)">−</button>
+          <div class="count-display">
+            <span id="count-number">4</span>
+            <span class="count-label">players</span>
+          </div>
+          <button class="count-btn" id="btn-plus" onclick="adjustCount(1)">+</button>
+        </div>
+
+        <div class="count-dots" id="count-dots"></div>
+
+        <div class="name-list" id="name-list">
+          <!-- player name inputs injected by JS -->
+        </div>
+
+        <button class="btn btn-primary btn-full" onclick="startSetup()">
+          Start Game →
+        </button>
+
+        <p id="setup-error" class="error-msg"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ SCREEN: PASS ══════════════ -->
+  <!-- Shows whose turn it is to peek. Others must look away. -->
+  <div id="screen-pass" class="screen">
+    <div class="pass-wrap">
+      <div class="pass-top">
+        <div class="pass-progress" id="pass-progress">
+          <!-- player dots -->
+        </div>
+      </div>
+
+      <div class="pass-center">
+        <div class="pass-arrow" id="pass-arrow">↓</div>
+        <p class="pass-label">Pass the phone to</p>
+        <h2 class="pass-name" id="pass-player-name">Player 1</h2>
+        <p class="pass-instruction">Everyone else look away!</p>
+      </div>
+
+      <button class="btn btn-primary btn-wide" onclick="goToReveal()">
+        I'm Ready to Peek 👀
+      </button>
+    </div>
+  </div>
+
+  <!-- ══════════════ SCREEN: REVEAL ══════════════ -->
+  <!-- Private peek screen — hold to see role -->
+  <div id="screen-reveal" class="screen">
+    <div class="reveal-wrap">
+
+      <div class="reveal-header">
+        <span class="reveal-name-tag" id="reveal-player-tag">Player 1</span>
+        <span class="reveal-only-you">Only you should be looking</span>
+      </div>
+
+      <!-- Covered state -->
+      <div class="role-cover" id="role-cover">
+        <div class="cover-eye">
+          <div class="eye-outer sm"><div class="eye-inner"><div class="eye-pupil"></div></div></div>
+        </div>
+        <p class="cover-text">Hold the button below<br>to reveal your role</p>
+      </div>
+
+      <!-- Role content (hidden until held) -->
+      <div class="role-content" id="role-content">
+        <!-- filled by JS -->
+      </div>
+
+      <!-- Hold-to-reveal button -->
+      <div class="hold-btn-wrap">
+        <button
+          class="btn-hold"
+          id="btn-hold"
+          onpointerdown="startHold()"
+          onpointerup="endHold()"
+          onpointerleave="endHold()"
+          oncontextmenu="return false"
+        >
+          <span class="hold-inner" id="hold-inner">
+            <span class="hold-icon">👁</span>
+            <span class="hold-text">Hold to Reveal</span>
+          </span>
+          <svg class="hold-ring" viewBox="0 0 100 100">
+            <circle class="hold-ring-bg" cx="50" cy="50" r="44"/>
+            <circle class="hold-ring-fg" id="hold-ring-fg" cx="50" cy="50" r="44"/>
+          </svg>
+        </button>
+      </div>
+
+      <button class="btn btn-secondary btn-wide" id="btn-done-peeking" onclick="donePeeking()" style="display:none;">
+        Done — Pass the Phone ✓
+      </button>
+
+    </div>
+  </div>
+
+  <!-- ══════════════ SCREEN: ALL DONE ══════════════ -->
+  <!-- Everyone has peeked. Time to play! -->
+  <div id="screen-allset" class="screen">
+    <div class="allset-wrap">
+      <div class="allset-icon">🎭</div>
+      <h2 class="allset-heading">Everyone's Ready!</h2>
+      <p class="allset-sub">Roles have been assigned.<br>Now discuss and find the imposter!</p>
+
+      <div class="allset-rules card">
+        <div class="rule-row">
+          <span class="rule-icon">🗣️</span>
+          <span class="rule-text">Talk about the secret word — but be vague!</span>
+        </div>
+        <div class="rule-row">
+          <span class="rule-icon">🎭</span>
+          <span class="rule-text">The imposter has no word — they must bluff.</span>
+        </div>
+        <div class="rule-row">
+          <span class="rule-icon">🗳️</span>
+          <span class="rule-text">Vote together to find who you think is the imposter.</span>
+        </div>
+      </div>
+
+      <div class="allset-actions">
+        <button class="btn btn-primary btn-full" onclick="playAgain()">⟳ New Game</button>
+        <button class="btn btn-ghost btn-full" onclick="showRevealAnswer()">👁 Reveal Answer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ SCREEN: REVEAL ANSWER ══════════════ -->
+  <div id="screen-answer" class="screen">
+    <div class="answer-wrap">
+      <h2 class="answer-heading">The Answer</h2>
+
+      <div class="card answer-word-card">
+        <div class="section-label">The Secret Word Was</div>
+        <div class="answer-word" id="answer-word"></div>
+        <img class="answer-image" id="answer-image" src="" alt="" />
+      </div>
+
+      <div class="card">
+        <div class="section-label">The Imposter Was</div>
+        <div class="answer-imposter" id="answer-imposter"></div>
+      </div>
+
+      <div class="answer-actions">
+        <button class="btn btn-primary btn-full" onclick="playAgain()">⟳ Play Again</button>
+        <button class="btn btn-ghost btn-full" onclick="goHome()">← Back to Home</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="words.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
